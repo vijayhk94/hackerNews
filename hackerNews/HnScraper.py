@@ -1,10 +1,9 @@
 from bs4 import BeautifulSoup
 import requests
 import lxml
-from HnItem import HnItem
-import MySQLdb
+from hackerNews.models import HnItem
 
-class HnScraper:		
+class HnScraper:
 	@staticmethod
 	def getHnItems(pages):
 		baseUrl = 'https://news.ycombinator.com/'
@@ -62,4 +61,4 @@ class HnScraper:
 			moreLink = itemListBody.td.table.find_all('tr')[-1]
 			moreString = moreLink.find('td', class_='title').find('a', class_='morelink')['href']
 			relativeUrl = f'{moreString}'
-		return hnItemList
+		return hnItemList	

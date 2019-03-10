@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+
+{% block app_content %}
+
+
+{% if current_user.is_authenticated %}
+       
+        {% if current_user.is_admin %}
+
+        <a class="btn add-ques-btn btn-sm mt-1 mb-1 floatLeft btn-primary" href="{{ url_for('new_test') }}">Add New Test</a>
+        <br>
+        {% endif  %}
+
+<h1 class="mb-3 user-posts-heading"> </h1>
+  {% for test in tests %}
+
+    <article class="media content-section">
+      <div class="media-body">
+        <div class="article-metadata">
+          <h3> <a class=" mr-2 article-title" href={{test.url}}>
+            News : {{ test.title }}
+           </a>
+           <a class="btn taken-test-btn btn-sm mt-1 mb-1 btn-primary" href="{{ url_for('bookmarkNews', news_id=test.id) }}">Bookmark</a>
+           <br/>
+           <a class=" mr-2 article-score">
+            Score : {{ test.upvotes }}
+           </a>
+           <a class=" mr-2 article-comments">
+            Comments : {{ test.comments }}
+           </a>
+           <a class=" mr-2 article-hnUrl" href={{test.hnUrl}}>
+            HackerNews Url
+           </a>
+           <a class=" mr-2 article-hnUrl">
+            Age : {{ test.postedHoursBefore }}
+           </a> 
+          </h3>
+        </div>
+      </div>
+
+    </article>
+
+  {% endfor %}
+
+{% else %}
+      
+    <div>
+      <div class="logout-class"> Please Login !</div>
+        <div class="article-metadata"></div>
+    </div>
+
+
+{% endif  %}
+
+
+{% endblock app_content %}
