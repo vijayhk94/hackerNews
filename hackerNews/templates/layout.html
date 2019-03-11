@@ -1,7 +1,7 @@
 {% extends 'bootstrap/base.html' %}
 
 {% block title %}
-    {% if title %}{{ title }} - Microblog{% else %}Welcome to Microblog{% endif %}
+    Welcome to CustomHackerNews
 {% endblock %}
 
 
@@ -21,7 +21,10 @@
                     <li><a class="nav-item" href="{{ url_for('home') }}">Home</a></li>
                 </ul>
                 <ul class="nav navbar-nav">
-                    <li><a class="nav-item" href="{{ url_for('bookmark') }}">Bookmarks</a></li>
+                    <li><a class="nav-item" href="{{ url_for('bookmarks') }}">Bookmarks</a></li>
+                </ul>
+                <ul class="nav navbar-nav">
+                    <li><a class="nav-item" href="{{ url_for('refresh') }}">Refresh</a></li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right nav-item">
                     {% if current_user.is_anonymous %}

@@ -1,50 +1,47 @@
 import os
 import secrets
-from flask import render_template, url_for, flash, redirect, json,request, abort,jsonify, json, Markup
-from hackerNews import app, db, bcrypt, mysql
+from flask import render_template, url_for, flash, redirect,request
+from hackerNews import app, db, bcrypt
 from hackerNews.forms import RegistrationForm, LoginForm
-from hackerNews.models import User, HnItem, Bookmarks
+from hackerNews.models import User, HnItem, Bookmarks, DeletedItems, ReadItems
 from hackerNews.HnScraper import HnScraper
 from hackerNews.HnItemDao import HnItemDao
 from flask_login import login_user, current_user, logout_user, login_required
-from flask_json import FlaskJSON, JsonError, json_response, as_json
-import re
-
-		
+import re		
 
 @app.route("/")
 def main():
-	#tests = Test.query.order_by(Test.date_posted.desc())
 	return render_template('allnews.html')
-
-@app.route("/user/<string:username>")
-def user_posts(username):	
-	page = request.args.get('page', 1, type=int)
-	user = User.query.filter_by(username=username).first_or_404()
-	posts = Post.query\
-				.filter_by(author=user)\
-				.order_by(Post.date_posted.desc())\
-				.paginate(page=page, per_page=5)
-	return render_template('user_posts.html', posts=posts, user=user)
 
 @app.route("/home")
 def home():
-	print('home route clicked')
-	#HnItemDao.flushTable()
-	test = HnScraper.getHnItems(3)
-	test = [x for x in test if db.session.query(HnItem.id).filter_by(id=x.id).scalar() is None]
-	HnItemDao.insertHnItems(test)
-	tests = HnItem.query.order_by(HnItem.postedHoursBefore)
-	print(len(tests.all()))
-	for x in tests:
-		print(x)
-	#tests = Test.query.order_by(Test.date_posted.desc())
-	return render_template('allnews.html', tests=tests)
+	if not current_user.is_authenticated:
+		return render_template('allnews.html')
+	news = HnItem.query.order_by(HnItem.postedHoursBefore)
+	deletedItems = db.session.query(HnItem).join(DeletedItems).filter(DeletedItems.user_id == current_user.id).filter(HnItem.id == DeletedItems.news_id)
+	if deletedItems is not None:
+		deletedItemsList = deletedItems.all()
+		news = [x for x in news if x not in deletedItemsList]	
+	return render_template('allnews.html', tests=news[:90])
 
-@app.route("/bookmark")
-def bookmark():
-	tests = db.session.query(HnItem).join(Bookmarks).filter(Bookmarks.user_id == current_user.id).filter(HnItem.id == Bookmarks.news_id).all()
-	return render_template('allnews.html', tests=tests)
+@app.route("/refresh")
+def refresh():
+	if not current_user.is_authenticated:
+		return render_template('allnews.html')
+	news = HnScraper.getHnItems(3)
+	news = [x for x in news if db.session.query(HnItem.id).filter_by(id=x.id).scalar() is None]
+	HnItemDao.insertHnItems(news)
+	return redirect(url_for('home'))
+
+@app.route("/bookmarks")
+def bookmarks():
+	if not current_user.is_authenticated:
+		return render_template('allnews.html')
+	bookmarkedItems = db.session.query(HnItem).join(Bookmarks).filter(Bookmarks.user_id == current_user.id).filter(HnItem.id == Bookmarks.news_id)
+	bookmarkedItemsList = []
+	if bookmarkedItems is not None:
+		bookmarkedItemsList = bookmarkedItems.all()
+	return render_template('allnews.html', tests=bookmarkedItemsList)
 
 
 
@@ -77,7 +74,6 @@ def login():
 			return redirect(next_page) if next_page else redirect(url_for('home'))
 		else:
 			flash('Login Unsuccessful, Check email and password', 'danger')
-
 	return render_template('login.html', title='Login', form=form)
 
 
@@ -93,5 +89,44 @@ def bookmarkNews(news_id):
 		return redirect(url_for('login'))
 	bookmark = Bookmarks(current_user.id, news_id)
 	db.session.add(bookmark)
+	db.session.commit()
+	return redirect(url_for('home'))
+
+@app.route("/unBookmarkNews/<int:news_id>",  methods=['GET', 'POST'])
+@login_required
+def unBookmarkNews(news_id):
+	if not current_user.is_authenticated:
+		return redirect(url_for('login'))
+	db.session.query(Bookmarks).filter_by(user_id = current_user.id, news_id = news_id).delete()
+	db.session.commit()
+	return redirect(url_for('home'))
+
+
+@app.route("/deleteNews/<int:news_id>",  methods=['GET', 'POST'])
+@login_required
+def deleteNews(news_id):
+	if not current_user.is_authenticated:
+		return redirect(url_for('login'))
+	deletedItem = DeletedItems(current_user.id, news_id)
+	db.session.add(deletedItem)
+	db.session.commit()
+	return redirect(url_for('home'))
+
+@app.route("/markAsRead/<int:news_id>",  methods=['GET', 'POST'])
+@login_required
+def markAsRead(news_id):
+	if not current_user.is_authenticated:
+		return redirect(url_for('login'))
+	readItem = ReadItems(current_user.id, news_id)
+	db.session.add(readItem)
+	db.session.commit()
+	return redirect(url_for('home'))
+
+@app.route("/unMarkAsRead/<int:news_id_>",  methods=['GET', 'POST'])
+@login_required
+def unMarkAsRead(news_id_):
+	if not current_user.is_authenticated:
+		return redirect(url_for('login'))
+	db.session.query(ReadItems).filter_by(user_id = current_user.id, news_id = news_id_).delete()
 	db.session.commit()
 	return redirect(url_for('home'))

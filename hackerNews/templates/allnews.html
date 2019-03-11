@@ -4,13 +4,6 @@
 
 
 {% if current_user.is_authenticated %}
-       
-        {% if current_user.is_admin %}
-
-        <a class="btn add-ques-btn btn-sm mt-1 mb-1 floatLeft btn-primary" href="{{ url_for('new_test') }}">Add New Test</a>
-        <br>
-        {% endif  %}
-
 <h1 class="mb-3 user-posts-heading"> </h1>
   {% for test in tests %}
 
@@ -18,9 +11,19 @@
       <div class="media-body">
         <div class="article-metadata">
           <h3> <a class=" mr-2 article-title" href={{test.url}}>
-            News : {{ test.title }}
+            {{ test.title }}
            </a>
+           {% if test.isBookMarked(current_user.id) %}
+           <a class="btn taken-test-btn btn-sm mt-1 mb-1 btn-primary" href="{{ url_for('unBookmarkNews', news_id=test.id) }}">Remove Bookmark</a>
+           {% else %}
            <a class="btn taken-test-btn btn-sm mt-1 mb-1 btn-primary" href="{{ url_for('bookmarkNews', news_id=test.id) }}">Bookmark</a>
+           {% endif %}
+           <a class="btn taken-test-btn btn-sm mt-1 mb-1 btn-primary" href="{{ url_for('deleteNews', news_id=test.id) }}">Delete</a>
+           {% if test.isReadForUser(current_user.id) %}
+           <a class="btn taken-test-btn btn-sm mt-1 mb-1 btn-primary" href="{{ url_for('unMarkAsRead', news_id_=test.id) }}">Mark as unread</a>
+           {% else %}
+           <a class="btn taken-test-btn btn-sm mt-1 mb-1 btn-primary" href="{{ url_for('markAsRead', news_id=test.id) }}">Mark as read</a>
+           {% endif %}
            <br/>
            <a class=" mr-2 article-score">
             Score : {{ test.upvotes }}
@@ -32,7 +35,7 @@
             HackerNews Url
            </a>
            <a class=" mr-2 article-hnUrl">
-            Age : {{ test.postedHoursBefore }}
+            Posted On : {{ test.postedHoursBefore }}
            </a> 
           </h3>
         </div>

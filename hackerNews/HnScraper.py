@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 import lxml
 from hackerNews.models import HnItem
+from datetime import datetime, timedelta
 
 class HnScraper:
 	@staticmethod
@@ -44,9 +45,15 @@ class HnScraper:
 				if scoreString is not None:
 					score = scoreString.contents[0].split(' ')[0]
 				ageString = next((x for x in ageList if x.find('a')['href'] == f'item?id={id}'), None)
-				age = 0
+				age = datetime.now
 				if ageString is not None:
-					age = ageString.find('a').contents[0].split(' ')[0]
+					#age = ageString.find('a').contents[0].split(' ')[0]
+					if "days" in ageString.find('a').contents[0]:
+						age = datetime.now() - timedelta(days=int(ageString.find('a').contents[0].split(' ')[0]))
+					elif "hours" in ageString:
+						age = datetime.now() - timedelta(hours=int(ageString.find('a').contents[0].split(' ')[0]))
+					else:
+						age = datetime.now() - timedelta(minutes=int(ageString.find('a').contents[0].split(' ')[0]))				
 				commentsString = next((x for x in commentsList if x['href'] == f'item?id={id}'), None)
 				comments = 0
 				if commentsString is not None:
