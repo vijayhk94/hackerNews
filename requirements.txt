@@ -37,7 +37,7 @@ html5lib==0.999999999
 httpie==0.9.9
 idna==2.5
 itsdangerous==0.24
-Jinja2==2.9.6
+Jinja2==2.11.3
 locustio==0.9.0
 lxml==4.3.2
 Mako==1.0.7
