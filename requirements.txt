@@ -39,7 +39,7 @@ idna==2.5
 itsdangerous==0.24
 Jinja2==2.9.6
 locustio==0.9.0
-lxml==4.3.2
+lxml==4.9.1
 Mako==1.0.7
 Markdown==2.6.8
 MarkupSafe==1.0
